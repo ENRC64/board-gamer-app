@@ -9,12 +9,15 @@ plugins {
 
 android {
     namespace = "com.boardgamer.board_gamer_app"
-    compileSdk = flutter.compileSdkVersion
+    // flutter_local_notifications und androidx.core 1.19 verlangen SDK 37.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // Von flutter_local_notifications verlangt (java.time auf älteren Geräten).
+        isCoreLibraryDesugaringEnabled = true
     }
 
     defaultConfig {
@@ -49,4 +52,8 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }
