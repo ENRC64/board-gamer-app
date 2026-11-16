@@ -48,9 +48,7 @@ class EventRepository {
         .snapshots()
         .map(
           (query) =>
-              query.docs
-                  .map((d) => EventModel.fromMap(d.id, d.data()))
-                  .toList()
+              query.docs.map((d) => EventModel.fromMap(d.id, d.data())).toList()
                 ..sort((a, b) => b.date.compareTo(a.date)),
         );
   }
