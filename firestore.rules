@@ -1,0 +1,71 @@
+rules_version = '2';
+
+// Security Rules v1 (T-28). Grundsatz: nur angemeldete Mitglieder der
+// (einzigen) Gruppe lesen; geschrieben wird nur mit der eigenen Nutzer-ID.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // Felder, die nur der Gastgeber eines Termins ändern darf.
+    function hostOnlyFields() {
+      return ['status', 'hostId', 'hostName', 'date', 'address'];
+    }
+
+    // Lebenszyklus planned → active → completed (A-06), nur eine Stufe vor.
+    function validStatusChange(before, after) {
+      return before == after
+        || (before == 'planned' && after == 'active')
+        || (before == 'active' && after == 'completed');
+    }
+
+    // ---------- Profile ----------
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isSelf(uid);
+      allow delete: if false;
+    }
+
+    // ---------- Spieltermine ----------
+    match /events/{eventId} {
+      allow read: if signedIn();
+
+      // Neuer Termin startet immer mit Status planned.
+      allow create: if signedIn()
+        && request.resource.data.status == 'planned';
+
+      // Gastgeber: alles, aber nur gültige Statuswechsel.
+      // Andere Mitglieder: nur Felder, die nicht dem Gastgeber vorbehalten sind.
+      allow update: if signedIn() && (
+        (request.auth.uid == resource.data.hostId
+          && validStatusChange(resource.data.status,
+                               request.resource.data.status))
+        || !request.resource.data.diff(resource.data)
+              .affectedKeys().hasAny(hostOnlyFields())
+      );
+
+      allow delete: if false;
+
+      // Unterkollektionen (Votes, Reviews, Statusmeldungen, Vorschläge,
+      // Bestellungen): Schreiben nur mit eigener Nutzer-ID, entweder als
+      // Dokument-ID (z. B. Review, Essens-Vote) oder im Feld userId.
+      match /{subcollection}/{docId} {
+        allow read: if signedIn();
+        allow create: if signedIn() && (
+          docId == request.auth.uid
+          || request.resource.data.userId == request.auth.uid
+        );
+        allow update, delete: if signedIn() && (
+          docId == request.auth.uid
+          || resource.data.userId == request.auth.uid
+        );
+      }
+    }
+  }
+}
