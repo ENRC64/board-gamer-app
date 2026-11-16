@@ -36,9 +36,11 @@ service cloud.firestore {
     match /events/{eventId} {
       allow read: if signedIn();
 
-      // Neuer Termin startet immer mit Status planned.
+      // Neuer Termin startet immer mit Status planned, und man kann ihn nur
+      // für sich selbst als Gastgeber anlegen (A-04, A-05).
       allow create: if signedIn()
-        && request.resource.data.status == 'planned';
+        && request.resource.data.status == 'planned'
+        && request.resource.data.hostId == request.auth.uid;
 
       // Gastgeber: alles, aber nur gültige Statuswechsel.
       // Andere Mitglieder: nur Felder, die nicht dem Gastgeber vorbehalten sind.
@@ -50,7 +52,10 @@ service cloud.firestore {
               .affectedKeys().hasAny(hostOnlyFields())
       );
 
-      allow delete: if false;
+      // Absage = Löschen, nur durch den Gastgeber und nur solange geplant (A-06).
+      allow delete: if signedIn()
+        && request.auth.uid == resource.data.hostId
+        && resource.data.status == 'planned';
 
       // Unterkollektionen (Votes, Reviews, Statusmeldungen, Vorschläge,
       // Bestellungen): Schreiben nur mit eigener Nutzer-ID, entweder als

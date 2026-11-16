@@ -57,3 +57,8 @@ final currentUserProfileProvider = StreamProvider<UserModel?>((ref) {
   if (user == null) return Stream.value(null);
   return ref.watch(userRepositoryProvider).watchUser(user.uid);
 });
+
+/// Alle Mitglieder in Registrierungsreihenfolge.
+final allUsersProvider = StreamProvider<List<UserModel>>(
+  (ref) => ref.watch(userRepositoryProvider).watchAllUsers(),
+);
