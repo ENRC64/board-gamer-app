@@ -43,6 +43,8 @@ void main() {
       expect(event.status, EventStatus.planned);
       final stored = await db.collection('events').doc(event.id).get();
       expect(stored.data()!['status'], 'planned');
+      // T-61: Essensfrist 48 h vor dem Termin
+      expect(event.foodVotingDeadline, DateTime(2026, 12, 2, 19));
     });
 
     test('verweigert, wenn jemand anderes an der Reihe ist', () {
@@ -124,7 +126,10 @@ void main() {
       final later = DateTime(2026, 12, 5, 18);
       await repo.updateDate(eventId: id, date: later, currentUserId: 'anna');
       final doc = await db.collection('events').doc(id).get();
-      expect(EventModel.fromMap(id, doc.data()!).date, later);
+      final moved = EventModel.fromMap(id, doc.data()!);
+      expect(moved.date, later);
+      // Essensfrist wandert mit (48 h vor neuem Termin)
+      expect(moved.foodVotingDeadline, DateTime(2026, 12, 3, 18));
 
       await repo.updateStatus(
         eventId: id,
