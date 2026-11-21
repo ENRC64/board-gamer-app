@@ -26,7 +26,7 @@ class EventModel {
     this.status = EventStatus.planned,
     this.createdAt,
     this.votingDeadline,
-    this.foodReminderAt,
+    this.foodVotingDeadline,
     this.selectedFoodCategory,
   });
 
@@ -43,8 +43,10 @@ class EventModel {
   /// Ende des Spiele-Votings (US-04).
   final DateTime? votingDeadline;
 
-  /// Zeitpunkt der Essens-Erinnerung (US-07).
-  final DateTime? foodReminderAt;
+  /// Frist der Essensabstimmung (A-13, US-07, US-08). Standard: 48 h vor
+  /// dem Termin. Die Erinnerung (A-14) liegt 24 h davor und wird daraus
+  /// berechnet, nicht gespeichert.
+  final DateTime? foodVotingDeadline;
 
   /// Ergebnis des Essens-Votings (A-13).
   final String? selectedFoodCategory;
@@ -61,7 +63,7 @@ class EventModel {
       status: EventStatus.fromName(map['status'] as String?),
       createdAt: dateFromFirestore(map['createdAt']),
       votingDeadline: dateFromFirestore(map['votingDeadline']),
-      foodReminderAt: dateFromFirestore(map['foodReminderAt']),
+      foodVotingDeadline: dateFromFirestore(map['foodVotingDeadline']),
       selectedFoodCategory: map['selectedFoodCategory'] as String?,
     );
   }
@@ -76,8 +78,8 @@ class EventModel {
       if (createdAt != null) 'createdAt': dateToFirestore(createdAt),
       if (votingDeadline != null)
         'votingDeadline': dateToFirestore(votingDeadline),
-      if (foodReminderAt != null)
-        'foodReminderAt': dateToFirestore(foodReminderAt),
+      if (foodVotingDeadline != null)
+        'foodVotingDeadline': dateToFirestore(foodVotingDeadline),
       if (selectedFoodCategory != null)
         'selectedFoodCategory': selectedFoodCategory,
     };
@@ -91,7 +93,7 @@ class EventModel {
     EventStatus? status,
     DateTime? createdAt,
     DateTime? votingDeadline,
-    DateTime? foodReminderAt,
+    DateTime? foodVotingDeadline,
     String? selectedFoodCategory,
   }) {
     return EventModel(
@@ -103,7 +105,7 @@ class EventModel {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       votingDeadline: votingDeadline ?? this.votingDeadline,
-      foodReminderAt: foodReminderAt ?? this.foodReminderAt,
+      foodVotingDeadline: foodVotingDeadline ?? this.foodVotingDeadline,
       selectedFoodCategory: selectedFoodCategory ?? this.selectedFoodCategory,
     );
   }
@@ -119,7 +121,7 @@ class EventModel {
       other.status == status &&
       other.createdAt == createdAt &&
       other.votingDeadline == votingDeadline &&
-      other.foodReminderAt == foodReminderAt &&
+      other.foodVotingDeadline == foodVotingDeadline &&
       other.selectedFoodCategory == selectedFoodCategory;
 
   @override
@@ -132,7 +134,7 @@ class EventModel {
     status,
     createdAt,
     votingDeadline,
-    foodReminderAt,
+    foodVotingDeadline,
     selectedFoodCategory,
   );
 }

@@ -11,7 +11,7 @@ void main() {
     status: EventStatus.active,
     createdAt: DateTime(2026, 11, 15),
     votingDeadline: DateTime(2026, 11, 30, 12),
-    foodReminderAt: DateTime(2026, 12, 1, 15),
+    foodVotingDeadline: DateTime(2026, 11, 29, 19),
     selectedFoodCategory: 'Pizza',
   );
 

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/event_model.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/providers/firebase_providers.dart';
+import '../../food/domain/food_reminder.dart';
 import '../../profile/data/user_repository.dart';
 import '../domain/host_rotation.dart';
 import 'event_failure.dart';
@@ -107,6 +108,8 @@ class EventRepository {
       hostName: host.displayName,
       address: host.address,
       createdAt: _now(),
+      // Frist der Essensabstimmung, Standard 48 h vorher (A-13, T-61).
+      foodVotingDeadline: FoodReminderRules.defaultDeadline(date, _now()),
     );
     await doc.set(event.toMap());
     return event;
@@ -138,7 +141,13 @@ class EventRepository {
     if (!date.isAfter(_now())) {
       throw const EventFailure('Der Termin muss in der Zukunft liegen.');
     }
-    await _events.doc(eventId).update({'date': Timestamp.fromDate(date)});
+    // Die Essensfrist wandert mit dem Termin mit (wieder 48 h vorher).
+    await _events.doc(eventId).update({
+      'date': Timestamp.fromDate(date),
+      'foodVotingDeadline': Timestamp.fromDate(
+        FoodReminderRules.defaultDeadline(date, _now()),
+      ),
+    });
   }
 
   /// Sagt einen geplanten Termin ab, indem er gelöscht wird (A-06).

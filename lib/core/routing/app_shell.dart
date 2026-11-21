@@ -2,12 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../features/notifications/food_reminders.dart';
 import '../../features/notifications/status_notifications.dart';
 
 /// Grundgerüst mit unterer Navigationsleiste für die vier Hauptbereiche.
 ///
 /// Die Shell ist sichtbar, solange jemand angemeldet ist. Deshalb schaltet
-/// sie hier die Benachrichtigungen für neue Statusmeldungen ein (T-44).
+/// sie hier die Benachrichtigungen für neue Statusmeldungen (T-44) und die
+/// Erinnerungen zur Essensabstimmung (T-61) ein.
 class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.navigationShell});
 
@@ -16,6 +18,8 @@ class AppShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(statusNotificationsProvider);
+    ref.watch(foodReminderSyncProvider);
+    ref.watch(foodResultNotifierProvider);
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(

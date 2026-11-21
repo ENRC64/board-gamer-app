@@ -72,25 +72,31 @@ final statusNotificationsProvider = Provider<void>((ref) {
 
 void _notify(Ref ref, StatusMessageModel m) {
   if (ref.read(isAppInForegroundProvider)()) {
-    scaffoldMessengerKey.currentState?.showSnackBar(
-      SnackBar(
-        content: Builder(
-          builder: (context) => Row(
-            children: [
-              Icon(
-                Icons.notifications_active_outlined,
-                color: Theme.of(context).colorScheme.onInverseSurface,
-              ),
-              const SizedBox(width: 12),
-              Expanded(child: Text('${m.userName}: ${m.text}')),
-            ],
-          ),
-        ),
-      ),
-    );
+    showInAppHint('${m.userName}: ${m.text}');
   } else {
     ref
         .read(notificationServiceProvider)
         .show(id: m.id.hashCode, title: m.userName, body: m.text);
   }
+}
+
+/// Zeigt unten in der App einen kurzen Hinweis mit Glocken-Symbol
+/// (genutzt für Statusmeldungen, T-44, und das Essensergebnis, T-61).
+void showInAppHint(String text) {
+  scaffoldMessengerKey.currentState?.showSnackBar(
+    SnackBar(
+      content: Builder(
+        builder: (context) => Row(
+          children: [
+            Icon(
+              Icons.notifications_active_outlined,
+              color: Theme.of(context).colorScheme.onInverseSurface,
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text(text)),
+          ],
+        ),
+      ),
+    ),
+  );
 }
