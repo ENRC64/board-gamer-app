@@ -54,3 +54,6 @@ secrets/
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+
+# sonstiges
+/board-gamer-app.code-workspace
