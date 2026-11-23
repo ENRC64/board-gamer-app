@@ -42,29 +42,3 @@ String playerCountLabel(int minPlayers, int maxPlayers) {
   }
   return '$minPlayers–$maxPlayers Spieler';
 }
-
-/// Initialen für den Avatar: erster Buchstabe des ersten und des letzten
-/// Namensteils, bei nur einem Teil ein Buchstabe; bei leerem Namen „?“.
-// TODO: OHNE Regex, nur mit String-Methoden
-String initialsOf(String name) {
-  var first = '';
-  var last = '';
-  var startsNamePart = true;
-
-  for (final rune in name.runes) {
-    final character = String.fromCharCode(rune);
-    if (character.trim().isEmpty) {
-      startsNamePart = true;
-    } else if (startsNamePart) {
-      if (first.isEmpty) {
-        first = character;
-      } else {
-        last = character;
-      }
-      startsNamePart = false;
-    }
-  }
-
-  if (first.isEmpty) return '?';
-  return '$first$last'.toUpperCase();
-}

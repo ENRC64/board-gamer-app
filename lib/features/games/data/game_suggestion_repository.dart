@@ -4,7 +4,7 @@ import 'package:board_gamer_app/core/models/game_suggestion_model.dart';
 import 'package:board_gamer_app/core/providers/firebase_providers.dart';
 import 'package:board_gamer_app/features/auth/data/auth_repository.dart';
 import 'package:board_gamer_app/features/event/data/event_failure.dart';
-import 'package:board_gamer_app/features/games/domain/games_suggestion_rules.dart';
+import 'package:board_gamer_app/features/games/domain/game_suggestion_rules.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

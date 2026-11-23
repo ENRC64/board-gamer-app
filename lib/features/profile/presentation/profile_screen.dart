@@ -1,3 +1,4 @@
+import 'package:board_gamer_app/core/utils/name_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -129,7 +130,7 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
                 leading: CircleAvatar(
                   backgroundColor: theme.colorScheme.primaryContainer,
                   foregroundColor: theme.colorScheme.onPrimaryContainer,
-                  child: Text(_initials(widget.user.displayName)),
+                  child: Text(initialsOf(widget.user.displayName)),
                 ),
                 title: Text(widget.user.displayName),
                 subtitle: Text(widget.user.email),
@@ -196,11 +197,5 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
         ),
       ),
     );
-  }
-
-  static String _initials(String name) {
-    final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty);
-    if (parts.isEmpty) return '?';
-    return parts.take(2).map((p) => p[0].toUpperCase()).join();
   }
 }
