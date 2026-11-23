@@ -1,12 +1,9 @@
 // TODO: Dokumentation ergänzen
 
 import 'package:board_gamer_app/core/models/game_suggestion_model.dart';
-import 'package:board_gamer_app/core/providers/firebase_providers.dart';
-import 'package:board_gamer_app/features/auth/data/auth_repository.dart';
 import 'package:board_gamer_app/features/event/data/event_failure.dart';
 import 'package:board_gamer_app/features/games/domain/game_suggestion_rules.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class GameSuggestionRepository {
   const GameSuggestionRepository(this._db);
@@ -45,13 +42,13 @@ class GameSuggestionRepository {
     final titleError = validateTitle(title);
     if (titleError != null) throw EventFailure(titleError);
     if (minPlayers < 1 || maxPlayers < 1) {
-      throw const EventFailure('Das Spiel muss für zumindest 1 Spielende geeignet sein.');
+      throw const EventFailure('Das Spiel muss für zumindest für eine Person spielbar sein.');
     }
     final rangeError = validatePlayerRange(minPlayers, maxPlayers);
     if (rangeError != null) throw EventFailure(rangeError);
   }
 
-  Future<void> _requireOwn(String suggestionId, String userId) async {
+  Future<void> _validateSuggestionOwnership(String suggestionId, String userId) async {
     final snapshot = await _suggestions.doc(suggestionId).get();
     if (!snapshot.exists) {
       throw const EventFailure('Der Vorschlag existiert nicht mehr.');
@@ -105,7 +102,7 @@ class GameSuggestionRepository {
     final cleanTitle = title.trim();
     _validateContent(cleanTitle, minPlayers, maxPlayers);
     try {
-      await _requireOwn(suggestionId, userId);
+      await _validateSuggestionOwnership(suggestionId, userId);
       final suggestion = GameSuggestionModel(
         id: suggestionId,
         userId: userId,
@@ -133,7 +130,7 @@ class GameSuggestionRepository {
     required String userId,
   }) async {
     try {
-      await _requireOwn(suggestionId, userId);
+      await _validateSuggestionOwnership(suggestionId, userId);
       await _suggestions.doc(suggestionId).delete();
     } on FirebaseException {
       throw const EventFailure(
@@ -143,21 +140,3 @@ class GameSuggestionRepository {
     }
   }
 }
-
-// TODO: Dokumentation ergänzen
-final gameSuggestionRepositoryProvider = Provider<GameSuggestionRepository>(
-  (ref) => GameSuggestionRepository(ref.watch(firestoreProvider)),
-);
-
-/// Gemeinsame Live-Vorschläge, ohne Terminparameter.
-final gameSuggestionsProvider = StreamProvider<List<GameSuggestionModel>>(
-  (ref) {
-    final uid = ref.watch(authStateProvider).value?.uid;
-    if (uid == null) {
-      return Stream<List<GameSuggestionModel>>.error(
-        const EventFailure('Bitte melde dich erneut an.'),
-      );
-    }
-    return ref.watch(gameSuggestionRepositoryProvider).watch();
-  },
-);
