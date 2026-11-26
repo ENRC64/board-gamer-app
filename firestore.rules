@@ -32,6 +32,49 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ---------- Spielvorschaelge ----------
+    
+    // Inhaltliche Prüfung eines neuen Spielvorschlags (US-03, A-07):
+    // genau diese Felder, Titel 1 bis 140 Zeichen, positive Spielerzahlen,
+    // min <= max, Erstellungszeit als Timestamp.
+    function validSuggestion(data) {
+      return data.keys().hasOnly(
+          ['title', 'description', 'minPlayers', 'maxPlayers', 'userId',
+           'createdAt'])
+        && data.keys().hasAll(
+          ['title', 'description', 'minPlayers', 'maxPlayers', 'userId',
+           'createdAt'])
+        && data.title is string
+        && data.title.trim().size() > 0
+        && data.title == data.title.trim()
+        && data.title.size() <= 140
+        && data.description is string
+        && data.userId is string
+        && data.minPlayers is int
+        && data.maxPlayers is int
+        && data.minPlayers > 0
+        && data.minPlayers <= data.maxPlayers
+        && data.createdAt is timestamp;
+    }
+    
+    match /gameSuggestions/{suggestionId} {
+      allow read: if signedIn();
+      allow create: if validSuggestion(request.resource.data)
+        && isSelf(request.resource.data.userId)
+        && request.resource.data.createdAt == request.time;
+      allow update: if isSelf(resource.data.userId)
+        && validSuggestion(request.resource.data)
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['title', 'description', 'minPlayers', 'maxPlayers']);
+      allow delete: if isSelf(resource.data.userId);      
+    }
+
+    // ---------- Spielvorschaelge ----------
+
+
+
     // ---------- Spieltermine ----------
     match /events/{eventId} {
       allow read: if signedIn();
