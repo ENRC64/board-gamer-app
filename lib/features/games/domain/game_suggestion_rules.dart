@@ -30,7 +30,7 @@ String? validatePlayerCount(String? value) {
 // TODO: Dokumentation ergänzen
 String? validatePlayerRange(int minPlayers, int maxPlayers) {
   if (minPlayers > maxPlayers) {
-    return 'Die maximale Spielerzahl muss größer als die Mindestzahl sein.';
+    return 'Die maximale Spielerzahl muss größer oder gleich der Mindestzahl sein.';
   }
   return null;
 }

@@ -213,7 +213,7 @@ void main() {
     expect(find.byType(AlertDialog), findsOneWidget);
     expect(
       find.text(
-        'Die maximale Spielerzahl muss größer als die Mindestzahl sein.',
+        'Die maximale Spielerzahl muss größer oder gleich der Mindestzahl sein.',
       ),
       findsOneWidget,
     );
