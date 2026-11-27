@@ -1,4 +1,3 @@
-// TODO: Dokumentation ergänzen
 import 'package:board_gamer_app/features/games/presentation/game_suggestion_controller_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -21,6 +20,8 @@ Future<void> showGameSuggestionDialog(
   );
 }
 
+/// Dialog mit Formular zum Anlegen oder Bearbeiten eines Spielvorschlags
+/// (Titel, Beschreibung, Spielerzahl) inklusive Validierung und Speichern.
 class GameSuggestionDialog extends ConsumerStatefulWidget {
   const GameSuggestionDialog({super.key, this.suggestion});
 

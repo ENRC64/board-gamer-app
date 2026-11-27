@@ -1,4 +1,5 @@
-// TODO: Dokumentation ergänzen
+// Widget-Tests für den GamesScreen: Gruppen, Leerzustand sowie Anlegen,
+// Bearbeiten und Löschen von Vorschlägen.
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
@@ -24,16 +25,14 @@ void main() {
     int min,
     int max,
     int hour,
-  ) => db
-      .collection('gameSuggestions')
-      .add({
-        'title': title,
-        'description': 'Beschreibung zu $title',
-        'minPlayers': min,
-        'maxPlayers': max,
-        'userId': userId,
-        'createdAt': Timestamp.fromDate(DateTime(2026, 11, 20, hour)),
-      });
+  ) => db.collection('gameSuggestions').add({
+    'title': title,
+    'description': 'Beschreibung zu $title',
+    'minPlayers': min,
+    'maxPlayers': max,
+    'userId': userId,
+    'createdAt': Timestamp.fromDate(DateTime(2026, 11, 20, hour)),
+  });
 
   Future<void> openGames(WidgetTester tester, String uid) async {
     await pumpApp(
@@ -184,9 +183,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(AlertDialog), findsNothing);
-    final docs = await db
-        .collection('gameSuggestions')
-        .get();
+    final docs = await db.collection('gameSuggestions').get();
     expect(docs.docs, hasLength(1));
     expect(docs.docs.single.data()['userId'], 'ben');
     expect(
@@ -196,7 +193,6 @@ void main() {
     expect(find.text('Carcassonne'), findsOneWidget);
   });
 
-// TODO: 
   testWidgets('Ungültige Eingabe zeigt Fehler und speichert nichts', (
     tester,
   ) async {
@@ -217,9 +213,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    final docs = await db
-        .collection('gameSuggestions')
-        .get();
+    final docs = await db.collection('gameSuggestions').get();
     expect(docs.docs, isEmpty);
   });
 
@@ -243,9 +237,7 @@ void main() {
       find.text('Der Titel darf maximal 140 Zeichen lang sein.'),
       findsOneWidget,
     );
-    final docs = await db
-        .collection('gameSuggestions')
-        .get();
+    final docs = await db.collection('gameSuggestions').get();
     expect(docs.docs, isEmpty);
   });
 
@@ -256,7 +248,10 @@ void main() {
     await tester.tap(find.byKey(const Key('addSuggestionButton')));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byKey(const Key('suggestionTitleField')), 'Uno');
+    await tester.enterText(
+      find.byKey(const Key('suggestionTitleField')),
+      'Uno',
+    );
     await tester.enterText(find.byKey(const Key('suggestionMinField')), '2');
     await tester.enterText(find.byKey(const Key('suggestionMaxField')), '8');
 
@@ -269,9 +264,7 @@ void main() {
 
     expect(find.byType(AlertDialog), findsNothing);
     expect(find.text('Uno'), findsOneWidget);
-    final docs = await db
-        .collection('gameSuggestions')
-        .get();
+    final docs = await db.collection('gameSuggestions').get();
     expect(docs.docs, hasLength(1));
   });
 

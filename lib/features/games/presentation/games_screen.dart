@@ -14,6 +14,9 @@ import '../../profile/data/user_repository.dart';
 import '../domain/game_suggestion_rules.dart';
 import 'game_suggestion_dialog.dart';
 
+// Spielvorschläge-Bildschirm mit seinen Hilfs-Widgets (Liste, Kopfzeile,
+// Leerhinweis, Eintrag, Avatar).
+
 /// Gemeinsame, terminunabhängige Spielvorschläge (US-03).
 class GamesScreen extends ConsumerWidget {
   const GamesScreen({super.key});
@@ -22,10 +25,8 @@ class GamesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authStateProvider);
     final busy = ref.watch(gameSuggestionControllerProvider).isLoading;
-    final canSuggest = !auth.isLoading &&
-        !auth.hasError &&
-        auth.value != null &&
-        !busy;
+    final canSuggest =
+        !auth.isLoading && !auth.hasError && auth.value != null && !busy;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Spiele')),
@@ -51,6 +52,8 @@ class GamesScreen extends ConsumerWidget {
   }
 }
 
+/// Zeigt die Vorschlagsliste in den Gruppen „Meine“ und „Weitere“ samt
+/// Lade-, Fehler- und Leerzustand.
 class _SuggestionsView extends ConsumerWidget {
   const _SuggestionsView();
 
@@ -152,11 +155,12 @@ Future<void> _confirmDeleteSuggestion(
   final message = saved
       ? 'Vorschlag gelöscht.'
       : error is EventFailure
-          ? error.message
-          : 'Der Vorschlag konnte nicht gelöscht werden. Bitte versuche es erneut.';
+      ? error.message
+      : 'Der Vorschlag konnte nicht gelöscht werden. Bitte versuche es erneut.';
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 }
 
+/// Überschrift einer Gruppe in der Vorschlagsliste.
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader(this.text);
 
@@ -176,6 +180,7 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
+/// Hinweistext, wenn eine Gruppe keine Vorschläge enthält.
 class _EmptyHint extends StatelessWidget {
   const _EmptyHint(this.text);
 
@@ -199,6 +204,8 @@ class _EmptyHint extends StatelessWidget {
   }
 }
 
+/// Listeneintrag eines Vorschlags mit Titel, Spielerzahl, Urheber-Avatar
+/// und (für eigene Vorschläge) Bearbeiten/Löschen.
 class _SuggestionTile extends StatelessWidget {
   const _SuggestionTile({
     required this.suggestion,

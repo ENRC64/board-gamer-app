@@ -1,4 +1,5 @@
-// TODO: Dokumentation ergänzen
+// Tests für GameSuggestionRepository (Fake-Firestore): Anlegen, Bearbeiten,
+// Löschen, Eigentümerprüfung, Validierung und Sortierung des Streams.
 import 'package:board_gamer_app/features/event/data/event_failure.dart';
 import 'package:board_gamer_app/features/games/data/game_suggestion_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -52,7 +53,12 @@ void main() {
     expect(
       catan.keys,
       unorderedEquals([
-        'title', 'description', 'minPlayers', 'maxPlayers', 'userId', 'createdAt',
+        'title',
+        'description',
+        'minPlayers',
+        'maxPlayers',
+        'userId',
+        'createdAt',
       ]),
     );
     expect(catan['userId'], 'anna');
@@ -94,56 +100,62 @@ void main() {
     expect(after['createdAt'], before['createdAt']);
   });
 
-  test('ungültige Bearbeitung lässt gespeicherte Inhalte unverändert', () async {
-    final id = await ownSuggestion();
-    final before = (await suggestions()).docs.single.data();
-    for (final title in ['   ', List.filled(141, 'a').join()]) {
+  test(
+    'ungültige Bearbeitung lässt gespeicherte Inhalte unverändert',
+    () async {
+      final id = await ownSuggestion();
+      final before = (await suggestions()).docs.single.data();
+      for (final title in ['   ', List.filled(141, 'a').join()]) {
+        await expectLater(
+          repo.update(
+            suggestionId: id,
+            userId: 'anna',
+            title: title,
+            description: 'Darf nicht gespeichert werden.',
+            minPlayers: 3,
+            maxPlayers: 4,
+          ),
+          throwsA(isA<EventFailure>()),
+        );
+      }
       await expectLater(
         repo.update(
           suggestionId: id,
           userId: 'anna',
-          title: title,
-          description: 'Darf nicht gespeichert werden.',
-          minPlayers: 3,
+          title: 'Gültiger Titel',
+          description: '',
+          minPlayers: 5,
+          maxPlayers: 2,
+        ),
+        throwsA(isA<EventFailure>()),
+      );
+      expect((await suggestions()).docs.single.data(), before);
+    },
+  );
+
+  test(
+    'fremde Vorschläge können nicht bearbeitet oder gelöscht werden',
+    () async {
+      final id = await ownSuggestion();
+      final before = (await suggestions()).docs.single.data();
+      await expectLater(
+        repo.update(
+          suggestionId: id,
+          userId: 'ben',
+          title: 'Fremde Änderung',
+          description: '',
+          minPlayers: 2,
           maxPlayers: 4,
         ),
         throwsA(isA<EventFailure>()),
       );
-    }
-    await expectLater(
-      repo.update(
-        suggestionId: id,
-        userId: 'anna',
-        title: 'Gültiger Titel',
-        description: '',
-        minPlayers: 5,
-        maxPlayers: 2,
-      ),
-      throwsA(isA<EventFailure>()),
-    );
-    expect((await suggestions()).docs.single.data(), before);
-  });
-
-  test('fremde Vorschläge können nicht bearbeitet oder gelöscht werden', () async {
-    final id = await ownSuggestion();
-    final before = (await suggestions()).docs.single.data();
-    await expectLater(
-      repo.update(
-        suggestionId: id,
-        userId: 'ben',
-        title: 'Fremde Änderung',
-        description: '',
-        minPlayers: 2,
-        maxPlayers: 4,
-      ),
-      throwsA(isA<EventFailure>()),
-    );
-    await expectLater(
-      repo.delete(suggestionId: id, userId: 'ben'),
-      throwsA(isA<EventFailure>()),
-    );
-    expect((await suggestions()).docs.single.data(), before);
-  });
+      await expectLater(
+        repo.delete(suggestionId: id, userId: 'ben'),
+        throwsA(isA<EventFailure>()),
+      );
+      expect((await suggestions()).docs.single.data(), before);
+    },
+  );
 
   test('Löschen entfernt nur den ausgewählten eigenen Vorschlag', () async {
     final id = await ownSuggestion();
@@ -161,22 +173,25 @@ void main() {
     expect(docs.single.data()['userId'], 'ben');
   });
 
-  test('gelöschter Vorschlag wird beim Bearbeiten nicht neu angelegt', () async {
-    final id = await ownSuggestion();
-    await repo.delete(suggestionId: id, userId: 'anna');
-    await expectLater(
-      repo.update(
-        suggestionId: id,
-        userId: 'anna',
-        title: 'Darf nicht neu entstehen',
-        description: '',
-        minPlayers: 2,
-        maxPlayers: 4,
-      ),
-      throwsA(isA<EventFailure>()),
-    );
-    expect((await suggestions()).docs, isEmpty);
-  });
+  test(
+    'gelöschter Vorschlag wird beim Bearbeiten nicht neu angelegt',
+    () async {
+      final id = await ownSuggestion();
+      await repo.delete(suggestionId: id, userId: 'anna');
+      await expectLater(
+        repo.update(
+          suggestionId: id,
+          userId: 'anna',
+          title: 'Darf nicht neu entstehen',
+          description: '',
+          minPlayers: 2,
+          maxPlayers: 4,
+        ),
+        throwsA(isA<EventFailure>()),
+      );
+      expect((await suggestions()).docs, isEmpty);
+    },
+  );
 
   test('ungültige Eingaben werden abgelehnt und nichts gespeichert', () async {
     Future<void> add(String title, int min, int max) => repo.add(
@@ -204,24 +219,32 @@ void main() {
     expect((await suggestions()).docs, isEmpty);
   });
 
-  test('Titel mit genau 140 Zeichen und Beschreibung wird gespeichert', () async {
-    final title140 = List.filled(140, 'a').join();
-    await repo.add(
-      userId: 'anna',
-      title: '  $title140  ',
-      description: 'Ein Spiel ohne Terminbindung.',
-      minPlayers: 2,
-      maxPlayers: 4,
-    );
-    final data = (await suggestions()).docs.single.data();
-    expect(data['title'], title140);
-    expect(
-      data.keys,
-      unorderedEquals([
-        'title', 'description', 'minPlayers', 'maxPlayers', 'userId', 'createdAt',
-      ]),
-    );
-  });
+  test(
+    'Titel mit genau 140 Zeichen und Beschreibung wird gespeichert',
+    () async {
+      final title140 = List.filled(140, 'a').join();
+      await repo.add(
+        userId: 'anna',
+        title: '  $title140  ',
+        description: 'Ein Spiel ohne Terminbindung.',
+        minPlayers: 2,
+        maxPlayers: 4,
+      );
+      final data = (await suggestions()).docs.single.data();
+      expect(data['title'], title140);
+      expect(
+        data.keys,
+        unorderedEquals([
+          'title',
+          'description',
+          'minPlayers',
+          'maxPlayers',
+          'userId',
+          'createdAt',
+        ]),
+      );
+    },
+  );
 
   test('Vorschlagen benötigt keinen Termin und ignoriert dessen Status', () async {
     // Das erste Spiel wird gespeichert, obwohl die Events-Kollektion leer ist.
@@ -246,10 +269,17 @@ void main() {
     }
     final docs = (await suggestions()).docs;
     expect(docs, hasLength(4));
-    expect(docs.map((doc) => doc.data()['userId']), containsAll(['anna', 'ben']));
     expect(
-      (await db.collection('events').doc('nur-zum-testen')
-          .collection('gameSuggestions').get()).docs,
+      docs.map((doc) => doc.data()['userId']),
+      containsAll(['anna', 'ben']),
+    );
+    expect(
+      (await db
+              .collection('events')
+              .doc('nur-zum-testen')
+              .collection('gameSuggestions')
+              .get())
+          .docs,
       isEmpty,
     );
   });

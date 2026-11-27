@@ -1,5 +1,5 @@
-// TODO: Dokumentation ergänzen
-
+/// Hilfsfunktion für Anzeigenamen: Liefert die Initialen (erster und letzter
+/// Namensteil, Großbuchstaben) oder „?“ bei leerem Namen, z. B. für Avatare.
 String initialsOf(String name) {
   final parts = name
       .trim()

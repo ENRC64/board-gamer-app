@@ -1,3 +1,4 @@
+// Tests für die Validierungsregeln und die Spielerzahl-Beschriftung.
 import 'package:board_gamer_app/features/games/domain/game_suggestion_rules.dart';
 import 'package:flutter_test/flutter_test.dart';
 

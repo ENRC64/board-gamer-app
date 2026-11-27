@@ -1,6 +1,6 @@
-// TODO: Dokumentation ergänzen, was ist games_suggestion_rules.dart?
-
-// TODO: Dokumentation ergänzen
+/// Validierungsregeln für Spielvorschläge: Titel, Spielerzahl und
+/// Spielerbereich sowie die Anzeige-Beschriftung der Spielerzahl.
+/// Prüft den Titel: nicht leer und höchstens 140 Zeichen (nach dem Trimmen).
 String? validateTitle(String? value) {
   final title = value?.trim() ?? '';
   if (title.isEmpty) {
@@ -12,14 +12,14 @@ String? validateTitle(String? value) {
   return null;
 }
 
-// TODO: Dokumentation ergänzen
+/// Wandelt die Eingabe in eine positive ganze Zahl um, sonst null.
 int? parsePlayerCount(String? value) {
   final number = int.tryParse((value ?? '').trim());
   if (number == null || number < 1) return null;
   return number;
 }
 
-// TODO: Dokumentation ergänzen
+/// Formularvalidierung: Fehlermeldung, wenn keine ganze Zahl > 0 vorliegt.
 String? validatePlayerCount(String? value) {
   if (parsePlayerCount(value) == null) {
     return 'Ganze Zahl > 0 eingeben.';
@@ -27,7 +27,7 @@ String? validatePlayerCount(String? value) {
   return null;
 }
 
-// TODO: Dokumentation ergänzen
+/// Fehlermeldung, wenn die maximale Spielerzahl unter dem Minimum liegt.
 String? validatePlayerRange(int minPlayers, int maxPlayers) {
   if (minPlayers > maxPlayers) {
     return 'Die maximale Spielerzahl muss größer oder gleich der Mindestzahl sein.';

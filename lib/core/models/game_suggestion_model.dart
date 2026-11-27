@@ -3,7 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firestore_converters.dart';
 
 // Spielvorschlag - terminunabhängig
-// TODO: Dokumentationen ergänzen
+/// Datenmodell eines Spielvorschlags (Titel, Beschreibung, Spielerzahl, Urheber).
+/// Wandelt zwischen Firestore-Dokument und Dart-Objekt um (fromMap, toCreateMap,
+/// toUpdateMap).
 class GameSuggestionModel {
   const GameSuggestionModel({
     required this.id,
@@ -35,7 +37,8 @@ class GameSuggestionModel {
     );
   }
 
-  // TODO: Dokumentation ergänzen
+  /// Felder fürs Anlegen: createdAt per Server-Zeitstempel, userId und
+  /// createdAt gibt es nur hier (Firestore-Regel: createdAt == request.time).
   Map<String, dynamic> toCreateMap() {
     return {
       'title': title,
@@ -47,7 +50,7 @@ class GameSuggestionModel {
     };
   }
 
-  // TODO: Dokumentation ergänzen
+  /// Nur die vier änderbaren Felder; userId und createdAt bleiben unberührt.
   Map<String, dynamic> toUpdateMap() => {
     'title': title,
     'description': description,

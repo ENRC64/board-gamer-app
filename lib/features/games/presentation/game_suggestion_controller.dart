@@ -1,12 +1,12 @@
-// TODO: hier weiter!!
-// TODO: Dokumentation ergänzen
 import 'package:board_gamer_app/features/games/data/game_suggestion_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/data/auth_repository.dart';
 import '../../event/data/event_failure.dart';
 
-/// Schreibaktionen auf Spielvorschlägen; Zustand zeigt Laden/Fehler an.
+/// Schreibaktionen auf Spielvorschlägen (speichern, löschen) für den
+/// angemeldeten Nutzer; der Zustand zeigt Laden/Fehler an und dient der UI
+/// als Rückmeldung.
 class GameSuggestionController extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
@@ -58,10 +58,9 @@ class GameSuggestionController extends AsyncNotifier<void> {
 
   Future<bool> remove(String suggestionId) {
     return _run((uid) {
-      return ref.read(gameSuggestionRepositoryProvider).delete(
-        suggestionId: suggestionId,
-        userId: uid,
-      );
+      return ref
+          .read(gameSuggestionRepositoryProvider)
+          .delete(suggestionId: suggestionId, userId: uid);
     });
   }
 }

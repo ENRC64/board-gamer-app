@@ -1,10 +1,11 @@
-// TODO: Dokumentation ergänzen
-
 import 'package:board_gamer_app/core/models/game_suggestion_model.dart';
 import 'package:board_gamer_app/features/event/data/event_failure.dart';
 import 'package:board_gamer_app/features/games/domain/game_suggestion_rules.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Firestore-Zugriff auf die Sammlung „gameSuggestions“: Live-Stream sowie
+/// Anlegen, Ändern und Löschen. Prüft Eingaben und dass nur der Urheber
+/// den eigenen Vorschlag ändern oder löschen darf.
 class GameSuggestionRepository {
   const GameSuggestionRepository(this._db);
 
@@ -13,7 +14,8 @@ class GameSuggestionRepository {
   CollectionReference<Map<String, dynamic>> get _suggestions =>
       _db.collection('gameSuggestions');
 
-  // TODO: Dokumentation ergänzen
+  /// Live-Stream aller Vorschläge: snapshots() liefert bei jeder Änderung
+  /// eine neue Liste. Sortiert wird bewusst im Client (siehe _compare).
   Stream<List<GameSuggestionModel>> watch() {
     return _suggestions.snapshots().map((snapshot) {
       final list = snapshot.docs.map((doc) {
@@ -24,8 +26,10 @@ class GameSuggestionRepository {
       return list;
     });
   }
-  
-  // TODO: Dokumentation ergänzen
+
+  /// Älteste zuerst. createdAt kann direkt nach dem Anlegen noch null sein
+  /// (Server-Zeitstempel folgt) und kommt dann ans Ende; die id sorgt für
+  /// eine stabile Reihenfolge bei Gleichstand.
   static int _compare(GameSuggestionModel a, GameSuggestionModel b) {
     final aTime = a.createdAt;
     final bTime = b.createdAt;
@@ -42,13 +46,18 @@ class GameSuggestionRepository {
     final titleError = validateTitle(title);
     if (titleError != null) throw EventFailure(titleError);
     if (minPlayers < 1 || maxPlayers < 1) {
-      throw const EventFailure('Das Spiel muss für zumindest für eine Person spielbar sein.');
+      throw const EventFailure(
+        'Das Spiel muss zumindest für eine Person spielbar sein.',
+      );
     }
     final rangeError = validatePlayerRange(minPlayers, maxPlayers);
     if (rangeError != null) throw EventFailure(rangeError);
   }
 
-  Future<void> _validateSuggestionOwnership(String suggestionId, String userId) async {
+  Future<void> _validateSuggestionOwnership(
+    String suggestionId,
+    String userId,
+  ) async {
     final snapshot = await _suggestions.doc(suggestionId).get();
     if (!snapshot.exists) {
       throw const EventFailure('Der Vorschlag existiert nicht mehr.');
@@ -78,7 +87,7 @@ class GameSuggestionRepository {
         description: description.trim(),
         minPlayers: minPlayers,
         maxPlayers: maxPlayers,
-        userId: userId, 
+        userId: userId,
         createdAt: null,
       );
       await _suggestions.add(suggestion.toCreateMap());
@@ -90,7 +99,7 @@ class GameSuggestionRepository {
     }
   }
 
-  // TODO: Dokuementation ergänzen
+  /// Ändert einen eigenen Vorschlag (Besitzerprüfung; zusätzlich Firestore-Rules).
   Future<void> update({
     required String suggestionId,
     required String userId,
@@ -109,7 +118,7 @@ class GameSuggestionRepository {
         title: cleanTitle,
         description: description.trim(),
         minPlayers: minPlayers,
-        maxPlayers: maxPlayers, 
+        maxPlayers: maxPlayers,
         createdAt: null,
       );
       await _suggestions.doc(suggestionId).update(suggestion.toUpdateMap());
@@ -124,7 +133,7 @@ class GameSuggestionRepository {
     }
   }
 
-  // TODO: Dokumentation ergänzen
+  /// Löscht einen eigenen Vorschlag (Besitzerprüfung; zusätzlich Firestore-Rules).
   Future<void> delete({
     required String suggestionId,
     required String userId,
